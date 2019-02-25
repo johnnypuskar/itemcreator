@@ -1,9 +1,17 @@
-import java.util.ArrayList;
+package main;
+
+import items.ItemType;
+import items.block.Block;
+import items.block.ComplexBlock;
+import items.block.SimpleBlock;
+import json.JSONArray;
+import json.JSONObject;
+import json.JSONParser;
 
 public class Program {
 
     public static int NEXT_ITEM_FRAME_ID = 0;
-    public static JSONObject itemFrameModel = (JSONObject)JSONParser.parse("{'parent':'item/generated','textures':{'layer0':'item/item_frame'}}");
+    public static JSONObject itemFrameModel = (JSONObject) JSONParser.parse("{'parent':'items.item/generated','textures':{'layer0':'items.item/item_frame'}}");
 
     public static void main(String[] args) {
         addBlock(ItemType.SIMPLE, "Basalt", "basalt.png");
@@ -16,6 +24,10 @@ public class Program {
     }
 
     public static Block addBlock(ItemType type, String name, String texture) {
+        return addBlock(type, name, texture, false);
+    }
+
+    public static Block addBlock(ItemType type, String name, String texture, boolean directional) {
         // Get overrides tag, creating if it doesn't already exist
         JSONArray overrides;
         if(itemFrameModel.get("overrides") == null) {
@@ -32,7 +44,7 @@ public class Program {
             overrides.add(block.getItemFrameDispModel());
         }
         else {
-            block = new SimpleBlock(name, texture);
+            block = new ComplexBlock(name, texture, directional);
         }
 
         return block;

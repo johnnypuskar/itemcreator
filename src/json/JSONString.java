@@ -1,3 +1,5 @@
+package json;
+
 public class JSONString implements Element {
     private String value;
 

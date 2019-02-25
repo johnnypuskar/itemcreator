@@ -1,3 +1,5 @@
+package json;
+
 public class JSONNumber implements Element {
     private double value;
 

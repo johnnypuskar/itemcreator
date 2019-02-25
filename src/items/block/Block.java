@@ -1,8 +1,14 @@
+package items.block;
+
+import json.JSONObject;
+import json.JSONParser;
+import main.Program;
+
 public abstract class Block {
-    // Names: (internal block name and item display name)
+    // Names: (internal items.block name and items.item display name)
     protected String displayName;
     protected String blockName;
-    // Block Models: Custom block models
+    // items.block.Block Models: Custom items.block models
     protected JSONObject itemFrameHandModel;
     protected JSONObject itemFrameDispModel;
     protected JSONObject blockHandModel;
@@ -11,8 +17,8 @@ public abstract class Block {
     public Block(String displayName, String blockName) {
         this.blockName = blockName;
         this.displayName = displayName;
-        this.itemFrameHandModel = (JSONObject)JSONParser.parse("{'predicate':{'custom_model_data':" + Program.nextItemFrameID() + "},'model':'block/" + blockName + "'}");
-        this.itemFrameDispModel = (JSONObject)JSONParser.parse("{'predicate':{'custom_model_data':" + Program.nextItemFrameID() + "},'model':'block/" + blockName + "_display'}");
+        this.itemFrameHandModel = (JSONObject) JSONParser.parse("{'predicate':{'custom_model_data':" + Program.nextItemFrameID() + "},'model':'items.block/" + blockName + "'}");
+        this.itemFrameDispModel = (JSONObject)JSONParser.parse("{'predicate':{'custom_model_data':" + Program.nextItemFrameID() + "},'model':'items.block/" + blockName + "_display'}");
     }
 
     public String getBlockName() {
