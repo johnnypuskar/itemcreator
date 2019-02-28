@@ -1,20 +1,21 @@
 package main;
 
 import items.ItemType;
-import items.block.Block;
-import items.block.ComplexBlock;
-import items.block.SimpleBlock;
-import json.JSONArray;
-import json.JSONObject;
-import json.JSONParser;
+import items.block.*;
+import json.*;
 
 public class Program {
 
     public static int NEXT_ITEM_FRAME_ID = 0;
+    public static Function mainFunction = new Function("main");
     public static JSONObject itemFrameModel = (JSONObject) JSONParser.parse("{'parent':'items.item/generated','textures':{'layer0':'items.item/item_frame'}}");
 
     public static void main(String[] args) {
         addBlock(ItemType.SIMPLE, "Basalt", "basalt.png");
+        mainFunction.addLine("say hi");
+        mainFunction.addLine("execute as @p run give @p minecraft:diamond");
+        mainFunction.addLine("tp @p ~ ~1 ~");
+        mainFunction.createFile("main");
     }
 
     public static int nextItemFrameID() {
