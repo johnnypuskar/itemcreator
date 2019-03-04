@@ -1,8 +1,27 @@
 package json;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public abstract class JSONParser {
+
+    public static void writeToFile(Element json, String path) {
+        try {
+            File file = new File(path);
+            if(!file.exists()) {
+                file.createNewFile();
+            }
+            BufferedWriter wrt = new BufferedWriter(new FileWriter(file));
+            wrt.write(json.json());
+            wrt.close();
+        }
+        catch(IOException e) {
+            System.out.println("Could not create JSON file!\n" + e);
+        }
+    }
 
     public static Element parse(String json) {
         json = json.trim();

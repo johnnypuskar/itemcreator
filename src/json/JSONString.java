@@ -14,4 +14,6 @@ public class JSONString implements Element {
     public JSONType getType() {
         return JSONType.STRING;
     }
+
+    public String toString() { return value; }
 }

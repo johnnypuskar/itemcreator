@@ -1,4 +1,4 @@
-package items.item;
+package resources.item;
 
 public abstract class Item {
 

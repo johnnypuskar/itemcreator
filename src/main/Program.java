@@ -1,53 +1,63 @@
 package main;
 
-import items.ItemType;
-import items.block.*;
+import data.Datapack;
+import data.Function;
 import json.*;
+import resources.ItemType;
+import resources.ResourcePack;
+import resources.block.SimpleBlock;
+
+import java.io.*;
 
 public class Program {
 
-    public static int NEXT_ITEM_FRAME_ID = 0;
     public static Function mainFunction = new Function("main");
-    public static JSONObject itemFrameModel = (JSONObject) JSONParser.parse("{'parent':'items.item/generated','textures':{'layer0':'items.item/item_frame'}}");
+    public static JSONObject itemFrameModel = null;
 
     public static void main(String[] args) {
-        addBlock(ItemType.SIMPLE, "Basalt", "basalt.png");
-        mainFunction.addLine("say hi");
-        mainFunction.addLine("execute as @p run give @p minecraft:diamond");
-        mainFunction.addLine("tp @p ~ ~1 ~");
-        mainFunction.createFile("main");
-    }
-
-    public static int nextItemFrameID() {
-        // Value of 0 never used -> intentional!!
-        NEXT_ITEM_FRAME_ID++;
-        return NEXT_ITEM_FRAME_ID;
-    }
-
-    public static Block addBlock(ItemType type, String name, String texture) {
-        return addBlock(type, name, texture, false);
-    }
-
-    public static Block addBlock(ItemType type, String name, String texture, boolean directional) {
-        // Get overrides tag, creating if it doesn't already exist
-        JSONArray overrides;
-        if(itemFrameModel.get("overrides") == null) {
-            overrides = new JSONArray();
-            itemFrameModel.set("overrides", overrides);
+        String packName = "Custom Pack";
+        String packDesc = "A custom made datapack which adds new blocks and items";
+        if(args.length > 0) {
+            packName = args[0];
         }
-        else {
-            overrides = (JSONArray)itemFrameModel.get("overrides");
+        if(args.length > 1) {
+            packDesc = args[1];
         }
-        Block block;
-        if(type == ItemType.SIMPLE) {
-            block = new SimpleBlock(name, texture);
-            overrides.add(block.getItemFrameHandModel());
-            overrides.add(block.getItemFrameDispModel());
-        }
-        else {
-            block = new ComplexBlock(name, texture, directional);
+        ResourcePack pack = new ResourcePack(packName, packDesc + " - Resource Pack");
+        Datapack dpack = new Datapack(packName.strip().toLowerCase().replaceAll(" ", "_"), packDesc + " - Datapack");
+        File[] blockFiles = new File("input/blocks").listFiles();
+
+        /* Reading block .ttdp files and adding them as new Block objects to pack */
+        for(File blockFile : blockFiles) {
+            if(blockFile.isFile() && blockFile.getName().length() >= 6 && blockFile.getName().substring(blockFile.getName().length() - 5).equals(".ttdp")) {
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(blockFile));
+
+                    JSONObject blockData = new JSONObject();
+
+                    String line = br.readLine();
+                    while(line != null) {
+                        String[] fields = line.split(":");
+                        if(fields.length == 2) {
+                            blockData.set(fields[0].strip(), fields[1].strip());
+                        }
+                        line = br.readLine();
+                    }
+                    br.close();
+
+                    pack.addBlock(blockData);
+                }
+                catch(FileNotFoundException e) {
+                    System.out.println("So a file that exists isn't found. Uh oh. (Line 26 of Program)");
+                }
+                catch(IOException e) {
+                    System.out.println(e);
+                }
+            }
         }
 
-        return block;
+        /* Export resource pack and datapack to output folder */
+        pack.exportPack();
+        dpack.exportPack(pack);
     }
 }

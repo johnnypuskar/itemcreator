@@ -17,4 +17,6 @@ public class JSONNumber implements Element {
     public JSONType getType() {
         return JSONType.NUMBER;
     }
+
+    public String toString() { return value + ""; }
 }

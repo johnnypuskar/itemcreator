@@ -1,4 +1,4 @@
-package main;
+package data;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,20 +7,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Function {
-    private String filename;
+    private String name;
     private ArrayList<String> commands = new ArrayList<String>();
 
-    public Function(String function_name) {
-        this.filename = "src/files/output/" + function_name + ".mcfunction";
+    public Function(String name) {
+        this.name = name;
     }
 
     public void addLine(String command) {
         commands.add(command);
     }
 
-    public void createFile(String path) {
+    public void exportToFolder(String folder) {
         try {
-            File file = new File(filename);
+            File file = new File(folder + "/" + name + ".mcfunction");
             if(!file.exists()) {
                 file.createNewFile();
             }
