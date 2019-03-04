@@ -15,7 +15,7 @@ public abstract class JSONParser {
                 file.createNewFile();
             }
             BufferedWriter wrt = new BufferedWriter(new FileWriter(file));
-            wrt.write(json.json());
+            wrt.write(json.json().replaceAll("'","\""));
             wrt.close();
         }
         catch(IOException e) {

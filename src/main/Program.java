@@ -28,6 +28,7 @@ public class Program {
         File[] blockFiles = new File("input/blocks").listFiles();
 
         /* Reading block .ttdp files and adding them as new Block objects to pack */
+        // TODO: Change file extensions to .dpb (for blocks) and .dpi (for items)
         for(File blockFile : blockFiles) {
             if(blockFile.isFile() && blockFile.getName().length() >= 6 && blockFile.getName().substring(blockFile.getName().length() - 5).equals(".ttdp")) {
                 try {
