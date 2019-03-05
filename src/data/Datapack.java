@@ -5,6 +5,7 @@ import json.JSONParser;
 import resources.ItemType;
 import resources.ResourcePack;
 import resources.block.Block;
+import resources.block.ComplexBlock;
 
 import java.io.File;
 
@@ -74,12 +75,15 @@ public class Datapack {
         JSONObject tick = (JSONObject)JSONParser.parse("{'values':['utility:main']}");
         JSONParser.writeToFile(tick, packLocation + "minecraft/tags/functions/tick.json");
         /* TICK.JSON */
-        /* GIVE FUNCTIONS */
+        /* BLOCK SPECIFIC FUNCTIONS */
         for(Block block : rp.getBlocks()) {
             Function give = new Function(block.getBlockName());
             give.addLine("give @s minecraft:item_frame{EntityTag:{Tags:[\"block_" + block.getBlockName() + "\",\"block_item_frame\"],Item:{id:\"minecraft:item_frame\",Count:1b,tag:{CustomModelData:" + (block.getModelID() + 1) + "}}},CustomModelData:" + block.getModelID() + ",KilledXP:1b,display:{Name:\"{\\\"text\\\":\\\"" + block.getDisplayName() + "\\\",\\\"italic\\\":\\\"false\\\"}\"}}");
             give.exportToFolder(packLocation + "give/functions");
+            if(block.getType() == ItemType.COMPLEX) {
+                (new File(packLocation + "blocks/functions/" + block.getBlockName())).mkdirs();
+            }
         }
-        /* GIVE FUNCTIONS */
+        /* BLOCK SPECIFIC FUNCTIONS */
     }
 }

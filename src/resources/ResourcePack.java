@@ -1,6 +1,7 @@
 package resources;
 
 import resources.block.Block;
+import resources.block.ComplexBlock;
 import resources.block.SimpleBlock;
 import json.JSONArray;
 import json.JSONObject;
@@ -59,11 +60,23 @@ public class ResourcePack {
             Block block = blocks.get(blockName);
             JSONParser.writeToFile(block.getBlockHandModel(), packLocation + "models/block/" + block.getBlockName() + ".json");
             JSONParser.writeToFile(block.getBlockDispModel(), packLocation + "models/block/" + block.getBlockName() + "_display.json");
-            try {
-                Files.copy(Paths.get("input/blocks/textures/" + block.getBlockName() + ".png"), Paths.get(packLocation + "textures/block/" + block.getBlockName() + ".png"), StandardCopyOption.REPLACE_EXISTING);
+            if(block.getType() == ItemType.SIMPLE) {
+                try {
+                    Files.copy(Paths.get("input/blocks/textures/" + block.getBlockName() + ".png"), Paths.get(packLocation + "textures/block/" + block.getBlockName() + ".png"), StandardCopyOption.REPLACE_EXISTING);
+                }
+                catch(IOException e) {
+                    System.out.println("Error copying texture file for " + block.getDisplayName() + ":\n" + e);
+                }
             }
-            catch(IOException e) {
-                System.out.println("Error copying texture file for " + block.getDisplayName() + ":\n" + e);
+            else {
+                for(String texture : ((ComplexBlock)block).getTextures()) {
+                    try {
+                        Files.copy(Paths.get("input/blocks/textures/" + texture + ".png"), Paths.get(packLocation + "textures/block/" + texture + ".png"), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    catch(IOException e) {
+                        System.out.println("Error copying texture file [" + texture + "] for " + block.getDisplayName() + ":\n" + e);
+                    }
+                }
             }
         }
     }
@@ -107,7 +120,15 @@ public class ResourcePack {
         }
         else {
             // Complex Block
-
+            RotationType rotation = RotationType.FIXED;
+            try {
+                rotation = RotationType.valueOf(data.get("rotation").toString().toUpperCase());
+            }
+            catch(IllegalArgumentException e) {
+                System.out.println("Unknown rotation type error for block '" + name + "': Defaulting to fixed");
+            }
+            ComplexBlock newBlock = new ComplexBlock(name, data, rotation, nextItemFrameID());
+            addCustomModels(newBlock);
         }
     }
 

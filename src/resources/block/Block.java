@@ -16,9 +16,9 @@ public abstract class Block {
     protected int modelID;
     protected ItemType type;
 
-    public Block(String displayName, String blockName, int modelID) {
-        this.blockName = blockName;
+    public Block(String displayName, int modelID) {
         this.displayName = displayName;
+        this.blockName = displayName.trim().toLowerCase().replaceAll(" ","_");
         this.modelID = modelID;
         this.itemFrameHandOverride = (JSONObject) JSONParser.parse("{'predicate':{'custom_model_data':" + modelID + "},'model':'block/" + blockName + "'}");
         this.itemFrameDispOverride = (JSONObject)JSONParser.parse("{'predicate':{'custom_model_data':" + (modelID + 1) + "},'model':'block/" + blockName + "_display'}");
