@@ -52,6 +52,7 @@ public class Datapack {
             }
             else {
                 main.addLine("execute as @e[tag=block_" + block.getBlockName() + "] at @s if block ~ ~ ~ air align xyz positioned ~0.5 ~ ~0.5 run function blocks:" + block.getBlockName() + "/place");
+                main.addLine("execute as @e[tag=complex_block,tag=" + block.getBlockName() + "] at @s run function blocks:" + block.getBlockName() + "/tick");
             }
         }
         // Separator
@@ -82,6 +83,7 @@ public class Datapack {
             give.exportToFolder(packLocation + "give/functions");
             if(block.getType() == ItemType.COMPLEX) {
                 (new File(packLocation + "blocks/functions/" + block.getBlockName())).mkdirs();
+                ((ComplexBlock)block).exportFunctions(packLocation + "blocks/functions/" + block.getBlockName());
             }
         }
         /* BLOCK SPECIFIC FUNCTIONS */

@@ -22,7 +22,6 @@ public class Function {
         try {
             File file = new File(folder + "/" + name + ".mcfunction");
             if(!file.exists()) {
-                file.mkdirs();
                 file.createNewFile();
             }
             BufferedWriter wrt = new BufferedWriter(new FileWriter(file));
