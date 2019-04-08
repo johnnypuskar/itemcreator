@@ -5,10 +5,10 @@ import json.JSONParser;
 import resources.ItemType;
 
 public abstract class Block {
-    // Names: (internal resources.block name and resources.item display name)
+    // Names: (internal block name and item display name)
     protected String displayName;
     protected String blockName;
-    // resources.block.Block Models: Custom resources.block models
+    // Block Models: Custom block models
     protected JSONObject itemFrameHandOverride;
     protected JSONObject itemFrameDispOverride;
     protected JSONObject blockHandModel;

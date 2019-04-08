@@ -28,32 +28,17 @@ public class Program {
         File[] blockFiles = new File("input/blocks").listFiles();
 
         /* Reading block .ttdp files and adding them as new Block objects to pack */
-        // TODO: Change file extensions to .dpb (for blocks) and .dpi (for items)
         for(File blockFile : blockFiles) {
-            if(blockFile.isFile() && blockFile.getName().length() >= 6 && blockFile.getName().substring(blockFile.getName().length() - 5).equals(".ttdp")) {
-                try {
-                    BufferedReader br = new BufferedReader(new FileReader(blockFile));
+            if(blockFile.isFile() && blockFile.getName().length() >= 5 && blockFile.getName().substring(blockFile.getName().length() - 4).equals(".dpb")) {
+                pack.addFromFile(blockFile);
+            }
+        }
 
-                    JSONObject blockData = new JSONObject();
-
-                    String line = br.readLine();
-                    while(line != null) {
-                        String[] fields = line.split(":");
-                        if(fields.length == 2) {
-                            blockData.set(fields[0].strip(), fields[1].strip());
-                        }
-                        line = br.readLine();
-                    }
-                    br.close();
-
-                    pack.addBlock(blockData);
-                }
-                catch(FileNotFoundException e) {
-                    System.out.println("So a file that exists isn't found. Uh oh. (Line 26 of Program)");
-                }
-                catch(IOException e) {
-                    System.out.println(e);
-                }
+        File[] itemFiles = new File("input/items").listFiles();
+        /* Reading block .ttdp files and adding them as new Block objects to pack */
+        for(File itemFile : itemFiles) {
+            if(itemFile.isFile() && itemFile.getName().length() >= 5 && itemFile.getName().substring(itemFile.getName().length() - 4).equals(".dpi")) {
+                pack.addFromFile(itemFile);
             }
         }
 

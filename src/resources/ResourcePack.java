@@ -6,10 +6,11 @@ import resources.block.SimpleBlock;
 import json.JSONArray;
 import json.JSONObject;
 import json.JSONParser;
+import resources.item.ComplexItem;
 import resources.item.Item;
+import resources.item.SimpleItem;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -26,6 +27,9 @@ public class ResourcePack {
     private HashMap<String, Block> blocks = new HashMap<String, Block>();
     private HashMap<String, Item> items = new HashMap<String, Item>();
 
+    private HashMap<String, JSONObject> itemModels = new HashMap<String, JSONObject>();
+
+    private static int INITIAL_ITEM_MODEL_ID = 7499;
     private static int NEXT_ITEM_FRAME_ID = 7499;
 
     public ResourcePack(String name, String description) {
@@ -49,9 +53,7 @@ public class ResourcePack {
         (new File(packLocation + "font")).mkdir();
 
         /* Creating font/default.json file */
-        // TODO: Add a way to give the ResourcePack custom GUI images to be added to fontDefault
         JSONParser.writeToFile(fontDefault,packLocation + "font/default.json");
-        // TODO: Copy font image files to textures/font
 
         /* Creating models/item/item_frame.json */
         JSONParser.writeToFile(itemFrameModel, packLocation + "models/item/item_frame.json");
@@ -77,6 +79,28 @@ public class ResourcePack {
                         System.out.println("Error copying texture file [" + texture + "] for " + block.getDisplayName() + ":\n" + e);
                     }
                 }
+                if(((ComplexBlock)block).hasGUI()) {
+                    try {
+                        Files.copy(Paths.get("input/blocks/textures/gui/" + block.getBlockName() + ".png"), Paths.get(packLocation + "textures/font/" + block.getBlockName() + ".png"), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    catch(IOException e) {
+                        System.out.println("Error copying GUI texture file for " + block.getDisplayName() + ":\n" + e);
+                    }
+                }
+            }
+        }
+        for(String itemName : itemModels.keySet()) {
+            JSONObject model = (JSONObject)itemModels.get(itemName).get("model");
+            JSONParser.writeToFile(model, packLocation + "models/item/" + itemName + ".json");
+        }
+        for(String itemName : items.keySet()) {
+            Item item = items.get(itemName);
+            JSONParser.writeToFile(item.getCustomModel(), packLocation + "models/item/" + item.getItemName() + ".json");
+            try {
+                Files.copy(Paths.get("input/items/textures/" + item.getItemName() + ".png"), Paths.get(packLocation + "textures/item/" + item.getItemName() + ".png"), StandardCopyOption.REPLACE_EXISTING);
+            }
+            catch(IOException e) {
+                System.out.println("Error copying texture file for " + item.getDisplayName() + ":\n" + e);
             }
         }
     }
@@ -103,10 +127,10 @@ public class ResourcePack {
         return itemList;
     }
 
-    public void addBlock(JSONObject data) {
+    private void addBlock(JSONObject data) {
         String name = data.get("name").toString();
         ItemType type;
-        if(data.get("type").toString().equals("simple")) {
+        if(data.get("type") == null || data.get("type").toString().equals("simple")) {
             type = ItemType.SIMPLE;
         }
         else {
@@ -127,8 +151,139 @@ public class ResourcePack {
             catch(IllegalArgumentException e) {
                 System.out.println("Unknown rotation type error for block '" + name + "': Defaulting to fixed");
             }
-            ComplexBlock newBlock = new ComplexBlock(name, data, rotation, nextItemFrameID());
+            int guiChar = -1;
+            if(data.get("gui") != null) {
+                ComplexBlock.nextFontCharID++;
+                guiChar = ComplexBlock.nextFontCharID;
+                ((JSONArray)fontDefault.get("providers")).add((JSONObject)JSONParser.parse("{'type':'bitmap','file':'minecraft:font/" + name.trim().toLowerCase().replaceAll(" ","_") + ".png','height':67,'ascent':10,'chars':['\\u" + Integer.toHexString(guiChar) + "']}"));
+            }
+            ComplexBlock newBlock = new ComplexBlock(name, data, rotation, nextItemFrameID(), guiChar);
             addCustomModels(newBlock);
+        }
+    }
+
+    private void addItem(JSONObject data) {
+        String name = data.get("name").toString();
+        ItemType type;
+        if(data.get("type") == null || data.get("type").toString().equals("simple")) {
+            type = ItemType.SIMPLE;
+        }
+        else {
+            type = ItemType.COMPLEX;
+        }
+        System.out.println("Adding Item: " + name + " (" + type + ")");
+        JSONObject nbt;
+        if(data.get("nbt") != null) {
+            nbt = (JSONObject)JSONParser.parse(data.get("nbt").toString());
+        }
+        else {
+            nbt = new JSONObject();
+        }
+        String base;
+        if(type == ItemType.SIMPLE) {
+            if(data.get("base") != null) {
+                base = data.get("base").toString();
+            }
+            else {
+                base = "command_block";
+            }
+        }
+        else {
+            base = "carrot_on_a_stick";
+        }
+        if(base.equals("item_frame")) {
+            SimpleItem newItem = new SimpleItem(name, nbt, base, nextItemFrameID());
+            addCustomModels(newItem);
+            return;
+        }
+        String base_model_type;
+        String model_type;
+        if(data.get("held") != null) {
+            model_type = data.get("held").toString();
+        }
+        else {
+            model_type = "generated";
+        }
+        if(data.get("base_held") != null) {
+            base_model_type = data.get("base_held").toString();
+        }
+        else if(base.equals("fishing_rod") || base.equals("carrot_on_a_stick")) {
+            base_model_type = "handheld_rod";
+        }
+        else {
+            base_model_type = model_type;
+        }
+        int modelID;
+        if(itemModels.containsKey(base)) {
+            modelID = (int)Double.parseDouble(itemModels.get(base).get("model_id").toString());
+        }
+        else {
+            modelID = INITIAL_ITEM_MODEL_ID;
+            itemModels.put(base, new JSONObject());
+            if(base.equals("command_block")) {
+                itemModels.get(base).set("model", (JSONObject)JSONParser.parse("{'parent':'block/" + base + "'}"));
+            }
+            else {
+                itemModels.get(base).set("model", (JSONObject)JSONParser.parse("{'parent':'item/" + base_model_type + "','textures':{'layer0':'item/" + base + "'}}"));
+            }
+        }
+        itemModels.get(base).set("model_id", modelID + 1);
+        if(type == ItemType.SIMPLE) {
+            // Simple Item
+            SimpleItem newItem = new SimpleItem(name, nbt, base, modelID, model_type);
+            addCustomModels(newItem);
+        }
+        else {
+            // Complex Item
+            ComplexItem newItem = new ComplexItem(name, nbt, "carrot_on_a_stick", modelID, model_type);
+            addCustomModels(newItem);
+        }
+    }
+
+    public void addFromFile(File file) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+
+            JSONObject data = new JSONObject();
+
+            String line = br.readLine();
+            while(line != null) {
+                String[] fields = line.split(":");
+                if(fields.length >= 2) {
+                    String value = "";
+                    if(fields.length == 2) {
+                        value = fields[1].strip();
+                    }
+                    else {
+                        for(int i = 1; i < fields.length; i++) {
+                            value += fields[i];
+                            if(i + 1 < fields.length) {
+                                value += ":";
+                            }
+                        }
+                        value = value.strip();
+                    }
+                    data.set(fields[0].strip(), value);
+                }
+                line = br.readLine();
+            }
+            br.close();
+
+            if(file.getName().substring(file.getName().length() - 4).equals(".dpb")) {
+                addBlock(data);
+            }
+            else if(file.getName().substring(file.getName().length() - 4).equals(".dpi")) {
+                addItem(data);
+            }
+            else {
+                System.out.println("Unknown file type for " + file.getName());
+            }
+        }
+        catch(FileNotFoundException e) {
+            System.out.println("So a file that exists isn't found. Uh oh. (Line 26 of Program)");
+        }
+        catch(IOException e) {
+            System.out.println(e);
         }
     }
 
@@ -146,4 +301,29 @@ public class ResourcePack {
         blocks.put(block.getBlockName(), block);
     }
 
+    private void addCustomModels(Item item) {
+        JSONArray overrides;
+        JSONObject model;
+        if(item.getBase().equals("item_frame")) {
+            if(itemFrameModel.get("overrides") == null) {
+                overrides = new JSONArray();
+                itemFrameModel.set("overrides", overrides);
+            }
+            else {
+                overrides = (JSONArray)itemFrameModel.get("overrides");
+            }
+        }
+        else {
+            model = (JSONObject)itemModels.get(item.getBase()).get("model");
+            if(model.get("overrides") == null) {
+                overrides = new JSONArray();
+                model.set("overrides", overrides);
+            }
+            else {
+                overrides = (JSONArray)model.get("overrides");
+            }
+        }
+        overrides.add(item.getModelOverride());
+        items.put(item.getItemName(), item);
+    }
 }
